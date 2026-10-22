@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Make Every Step Count</title>
+<style>
+:root{--nuit:#0d181d;--roche:#1b2b32;--glacier:#dcebef;--brume:#8fa8b0;--braise:#ff6b2c;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--nuit);color:var(--glacier);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--nuit);border-bottom:1px solid var(--roche)}
+.bar{max-width:640px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-weight:800;letter-spacing:.02em;font-size:1.05rem;text-transform:uppercase}
+.logo b{color:var(--braise)}
+.me{font-size:.85rem;color:var(--brume);cursor:pointer;background:none;border:0}
+main{max-width:640px;margin:auto;padding:16px}
+.hero{padding:20px 4px 8px}
+.hero h1{margin:0 0 6px;font-size:1.6rem}
+.hero p{margin:0;color:var(--brume)}
+.card{background:var(--roche);border-radius:16px;margin:16px 0;overflow:hidden}
+.pad{padding:16px}
+label{display:block;font-size:.8rem;color:var(--brume);margin:10px 0 4px}
+input,select,textarea{width:100%;background:var(--nuit);color:var(--glacier);border:1px solid #2c424b;border-radius:10px;padding:10px;font:inherit}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--braise);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.btn{background:var(--braise);color:var(--nuit);border:0;border-radius:999px;padding:11px 20px;font-weight:700;font-size:1rem;cursor:pointer;margin-top:14px;width:100%}
+.btn:hover{filter:brightness(1.08)}
+.drop{display:flex;align-items:center;justify-content:center;border:2px dashed var(--brume);border-radius:12px;min-height:110px;color:var(--brume);cursor:pointer;overflow:hidden;text-align:center}
+.drop img{width:100%;max-height:260px;object-fit:cover}
+.head{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--braise);color:var(--nuit);display:grid;place-items:center;font-weight:800}
+.head small{display:block;color:var(--brume)}
+.photo{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--nuit)}
+.ph{display:grid;place-items:center;font-size:4rem}
+.stats{display:flex;justify-content:space-around;padding:14px 8px;border-bottom:1px solid #2c424b;text-align:center}
+.stats b{display:block;font-size:1.15rem}
+.stats span{font-size:.75rem;color:var(--brume);text-transform:uppercase;letter-spacing:.05em}
+.stats .hot{color:var(--braise)}
+.cap{padding:12px 16px 4px}
+.acts{display:flex;gap:16px;align-items:center;padding:8px 16px 14px;flex-wrap:wrap}
+.acts button{background:none;border:0;color:var(--brume);font:inherit;cursor:pointer;padding:4px 0}
+.acts button.on{color:var(--braise)}
+.acts a{margin-left:auto;color:var(--braise);font-weight:600;text-decoration:none;font-size:.9rem}
+.cm{padding:0 16px 14px;font-size:.9rem}
+.cm p{margin:4px 0}.cm b{color:var(--glacier)}.cm span{color:var(--brume)}
+.cf{display:flex;gap:8px;padding:0 16px 16px}
+.cf button{background:var(--nuit);color:var(--braise);border:1px solid #2c424b;border-radius:10px;padding:0 14px;font-weight:700;cursor:pointer}
+.empty{color:var(--brume);text-align:center;padding:30px}
+footer{text-align:center;color:var(--brume);font-size:.8rem;padding:24px 16px 40px}
+</style>
+</head>
+<body>
+<header><div class="bar"><a class="logo" href="index.html" style="color:inherit;text-decoration:none" aria-label="Retour à l’accueil">Make Every <b>Step</b> Count</a><button class="me" id="me"></button></div></header>
+<main>
+<section class="hero"><h1>La communauté en mouvement</h1><p>Partage ta photo et ta course Strava, inspire les autres.</p></section>
+
+<section class="card pad">
+<strong>Poster ma course</strong>
+<label>Mon pseudo</label><input id="user" maxlength="24" placeholder="ex. Camille">
+<label>Photo</label>
+<div class="drop" id="drop"><span>📷 Touche pour ajouter une photo</span></div>
+<input type="file" id="file" accept="image/*" hidden>
+<div class="row">
+<div><label>Distance (km)</label><input id="km" type="number" step="0.01" min="0" placeholder="10.5"></div>
+<div><label>Durée (min)</label><input id="min" type="number" step="1" min="0" placeholder="55"></div>
+<div><label>Sport</label><select id="sport"><option>Course</option><option>Trail</option><option>Vélo</option><option>Marche</option></select></div>
+</div>
+<label>Lien Strava (facultatif)</label><input id="strava" type="url" placeholder="https://www.strava.com/activities/...">
+<label>Légende</label><textarea id="cap" rows="2" maxlength="200" placeholder="Raconte ta sortie…"></textarea>
+<button class="btn" id="post">Publier</button>
+</section>
+
+<div id="feed"></div>
+</main>
+<footer>© Make Every Step Count</footer>
+
+<script>
+(function(){
+var KEY="mesc_posts_v1",UKEY="mesc_user_v1",posts=[],img="";
+var $=function(i){return document.getElementById(i)};
+function load(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var seed=[
+{id:"s1",user:"Léa",sport:"Trail",km:18.4,min:121,cap:"Lever de soleil sur la crête, ça valait chaque pas.",emoji:"🏔️",g:"#1b2b32,#ff6b2c",likes:["a","b","c"],comments:[{u:"Hugo",t:"Magnifique, bravo !"}],t:Date.now()-7200000},
+{id:"s2",user:"Mathieu",sport:"Course",km:10,min:48,cap:"Nouveau record sur 10 km 🔥",emoji:"🌅",g:"#0d181d,#8fa8b0",likes:["a"],comments:[],t:Date.now()-86400000}];
+posts=load(KEY)||seed;
+$("user").value=load(UKEY)||"";
+function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<1)return"à l’instant";if(m<60)return"il y a "+m+" min";if(m<1440)return"il y a "+Math.round(m/60)+" h";return"il y a "+Math.round(m/1440)+" j"}
+function pace(km,min){if(!km||!min)return"–";var p=min/km,m=Math.floor(p),s=Math.round((p-m)*60);if(s==60){m++;s=0}return m+":"+(s<10?"0":"")+s}
+function dur(min){var h=Math.floor(min/60),m=Math.round(min%60);return h?h+"h"+(m<10?"0":"")+m:m+" min"}
+function who(){return($("user").value.trim()||"Invité")}
+function render(){
+ $("me").textContent=who()==="Invité"?"Choisis un pseudo":"👤 "+who();
+ var h="";
+ if(!posts.length)h='<div class="empty">Aucune publication pour l’instant. Sois le premier !</div>';
+ posts.forEach(function(p){
+  var liked=p.likes.indexOf(who())>-1;
+  h+='<article class="card"><div class="head"><div class="av">'+esc(p.user.charAt(0).toUpperCase())+'</div><div><strong>'+esc(p.user)+'</strong><small>'+esc(p.sport)+' · '+ago(p.t)+'</small></div></div>';
+  h+=p.img?'<img class="photo" alt="Photo de '+esc(p.user)+'" src="'+p.img+'">':'<div class="photo ph" style="background:linear-gradient(160deg,'+esc(p.g||"#1b2b32,#0d181d")+')">'+(p.emoji||"🏃")+'</div>';
+  h+='<div class="stats"><div><b class="hot">'+Number(p.km||0).toFixed(1)+' km</b><span>Distance</span></div><div><b>'+dur(p.min||0)+'</b><span>Durée</span></div><div><b>'+pace(p.km,p.min)+'</b><span>min/km</span></div></div>';
+  if(p.cap)h+='<div class="cap"><b>'+esc(p.user)+'</b> '+esc(p.cap)+'</div>';
+  h+='<div class="acts"><button class="'+(liked?"on":"")+'" data-like="'+p.id+'">'+(liked?"♥":"♡")+' '+p.likes.length+'</button>';
+  if(p.strava)h+='<a href="'+esc(p.strava)+'" target="_blank" rel="noopener">Voir sur Strava ↗</a>';
+  h+='</div><div class="cm">';
+  p.comments.forEach(function(c){h+='<p><b>'+esc(c.u)+'</b> <span>'+esc(c.t)+'</span></p>'});
+  h+='</div><div class="cf"><input placeholder="Ajouter un commentaire…" maxlength="150" id="c-'+p.id+'"><button data-com="'+p.id+'">OK</button></div></article>';
+ });
+ $("feed").innerHTML=h;
+}
+function persist(){if(!save(KEY,posts))alert("Stockage plein : supprime des publications ou utilise une photo plus légère.")}
+$("drop").onclick=function(){$("file").click()};
+$("file").onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ var r=new FileReader();
+ r.onload=function(){var i=new Image();i.onload=function(){
+  var s=Math.min(1,900/Math.max(i.width,i.height)),c=document.createElement("canvas");
+  c.width=i.width*s;c.height=i.height*s;c.getContext("2d").drawImage(i,0,0,c.width,c.height);
+  img=c.toDataURL("image/jpeg",.75);
+  $("drop").innerHTML='<img alt="Aperçu" src="'+img+'">';
+ };i.src=r.result};
+ r.readAsDataURL(f);
+};
+$("user").onchange=function(){save(UKEY,$("user").value.trim());render()};
+$("me").onclick=function(){$("user").focus();$("user").scrollIntoView({behavior:"smooth",block:"center"})};
+$("post").onclick=function(){
+ var km=parseFloat($("km").value),min=parseFloat($("min").value);
+ if(!$("user").value.trim()){alert("Choisis un pseudo.");return}
+ if(!img){alert("Ajoute une photo.");return}
+ if(!(km>0)||!(min>0)){alert("Renseigne la distance et la durée.");return}
+ save(UKEY,$("user").value.trim());
+ posts.unshift({id:"p"+Date.now(),user:who(),sport:$("sport").value,km:km,min:min,cap:$("cap").value.trim(),strava:$("strava").value.trim(),img:img,likes:[],comments:[],t:Date.now()});
+ persist();img="";
+ ["km","min","cap","strava"].forEach(function(i){$(i).value=""});
+ $("drop").innerHTML="<span>📷 Touche pour ajouter une photo</span>";$("file").value="";
+ render();
+};
+$("feed").onclick=function(e){
+ var l=e.target.getAttribute("data-like"),c=e.target.getAttribute("data-com");
+ if(l){var p=posts.filter(function(x){return x.id===l})[0],u=who(),i=p.likes.indexOf(u);if(i>-1)p.likes.splice(i,1);else p.likes.push(u);persist();render()}
+ if(c){var inp=$("c-"+c),t=inp.value.trim();if(!t)return;posts.filter(function(x){return x.id===c})[0].comments.push({u:who(),t:t});persist();render()}
+};
+render();
+})();
+</script>
+</body>
+</html>
